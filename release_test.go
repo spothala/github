@@ -12,10 +12,10 @@ const (
 	BODY    = "This test was created by github-api test-cases"
 	FILE    = "example.zip"
 	CTYPE   = "application/zip"
-	TOKEN   = "319deb19107a77b2fcb7984b00d11a52291e3a19"
+	TOKEN   = "" // PERSONAL_ACCESS_TOKEN
 )
 
-var githubAPI = New(TOKEN, false)
+var githubAPI = New(TOKEN, true)
 
 func TestCreateRelease(t *testing.T) {
 	relUrl := githubAPI.CreateRelease(ORGREPO, TAGNAME, TITLE, BODY)
