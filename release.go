@@ -2,7 +2,6 @@ package github
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -17,22 +16,14 @@ import (
 	"github.com/spothala/go-http-api/utils"
 )
 
-func convertToReleaseConfig(apiResponse []byte) (rConfig GithubReleaseConfig) {
-	err := json.Unmarshal(apiResponse, &rConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return
-}
-
-func (api *Client) getReleaseByTag(repoName string, tag_name string) map[string]interface{} {
+func (api *Client) GetReleaseByTag(repoName string, tag_name string) map[string]interface{} {
 	apiResponse, _ := api.Github("GET", nil, "/repos/"+repoName+"/releases/tags/"+tag_name, nil)
 	jsonResponse, found := utils.GetJson(apiResponse).(map[string]interface{})
 	checkMapConversion(apiResponse, found)
 	return jsonResponse
 }
 
-func (api *Client) getReleaseById(repoName string, release_id string) map[string]interface{} {
+func (api *Client) GetReleaseById(repoName string, release_id string) map[string]interface{} {
 	apiResponse, _ := api.Github("GET", nil, "/repos/"+repoName+"/releases/"+release_id, nil)
 	jsonResponse, found := utils.GetJson(apiResponse).(map[string]interface{})
 	checkMapConversion(apiResponse, found)
@@ -40,7 +31,7 @@ func (api *Client) getReleaseById(repoName string, release_id string) map[string
 }
 
 func (api *Client) DownloadReleaseAsset(repoName string, tag_name string, assetName string) bool {
-	asset, rUrl := api.getAsset(repoName, tag_name, assetName)
+	asset, rUrl := api.GetAsset(repoName, tag_name, assetName)
 	aName := asset["name"].(string)
 	aSize := asset["size"].(float64)
 	aURL := asset["url"].(string)
@@ -81,14 +72,14 @@ func (api *Client) DownloadReleaseAsset(repoName string, tag_name string, assetN
 	return downloaded
 }
 
-func (api *Client) getAsset(repoName string, tag_name string, assetName string) (map[string]interface{}, string) {
+func (api *Client) GetAsset(repoName string, tag_name string, assetName string) (map[string]interface{}, string) {
 	var rConfig map[string]interface{}
 	if tag_name == "" {
-		rConfig = api.getReleaseById(repoName, "latest")
+		rConfig = api.GetReleaseById(repoName, "latest")
 	} else {
-		rConfig = api.getReleaseByTag(repoName, tag_name)
+		rConfig = api.GetReleaseByTag(repoName, tag_name)
 	}
-	if debug {
+	if api.debug {
 		fmt.Println("Total Number of Assets: " + strconv.Itoa(len(rConfig["assets"].([]interface{}))))
 	}
 	var assetConfig map[string]interface{}
@@ -108,9 +99,9 @@ func (api *Client) UploadAssetToRelease(repoName string, tag_name string,
 	filePath string, contentType string) map[string]interface{} {
 	var rConfig map[string]interface{}
 	if tag_name == "" {
-		rConfig = api.getReleaseById(repoName, "latest")
+		rConfig = api.GetReleaseById(repoName, "latest")
 	} else {
-		rConfig = api.getReleaseByTag(repoName, tag_name)
+		rConfig = api.GetReleaseByTag(repoName, tag_name)
 	}
 	upload_url := rConfig["upload_url"].(string)
 	if api.debug {
@@ -147,7 +138,7 @@ func (api *Client) CreateRelease(repoName string, tagName string, title string, 
 	apiResponse, _ := api.Github("POST", nil, "/repos/"+repoName+"/releases", strings.NewReader(string(jsonOut)))
 	jsonResponse, found := utils.GetJson(apiResponse).(map[string]interface{})
 	checkMapConversion(apiResponse, found)
-	if debug {
+	if api.debug {
 		fmt.Println("Status: Tag " + jsonResponse["tag_name"].(string) + " Created")
 		fmt.Println("Location: " + jsonResponse["html_url"].(string))
 	}
@@ -155,10 +146,10 @@ func (api *Client) CreateRelease(repoName string, tagName string, title string, 
 }
 
 func (api *Client) DeleteRelease(repoName string, tagName string) int {
-	rConfig := api.getReleaseByTag(repoName, tagName)
+	rConfig := api.GetReleaseByTag(repoName, tagName)
 	jsonResp, httpCode := api.Github("DELETE", nil, "/repos/"+repoName+"/releases/"+strconv.Itoa(int(rConfig["id"].(float64))), nil)
 	// 204 Means No-Content Returned
-	if httpCode == 204 && jsonResp == nil && debug {
+	if httpCode == 204 && jsonResp == nil && api.debug {
 		fmt.Println("Tag " + tagName + " got deleted.")
 	}
 	return httpCode

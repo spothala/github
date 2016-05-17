@@ -11,6 +11,12 @@ import (
 	"github.com/spothala/go-http-api/utils"
 )
 
+const (
+	githubApiUrl = "https://api.github.com"
+	version      = "0.3.0"
+	userAgent    = "Go " + version
+)
+
 type Client struct {
 	token string
 	debug bool
@@ -38,7 +44,7 @@ func (api *Client) Github(method string, header map[string][]string, endURL stri
 	if header == nil {
 		header = url.Values{}
 	}
-	header["Authorization"] = []string{prepareAuthHeader()}
+	header["Authorization"] = []string{"token " + api.token}
 	// ISSUING HTTP REQUEST
 	apiResponse, httpCode := client.ProcessRequest(method, header, apiURL, body)
 	if api.debug {

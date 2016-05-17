@@ -27,14 +27,14 @@ func (api *Client) ListAllWebhooks(repoName string) ([]interface{}, int) {
 	jsonResp := utils.GetJson(apiResponse)
 	hooks, found := jsonResp.([]interface{})
 	checkMapConversion(apiResponse, found)
-	if debug {
+	if api.debug {
 		printHookHeader()
 	}
 	hookCount := 0
 	for _, hook := range hooks {
 		hookMap := hook.(map[string]interface{})
 		if hookMap["name"].(string) == "web" {
-			if debug {
+			if api.debug {
 				printHookDetails(hookMap)
 			}
 			hookCount++
@@ -45,7 +45,7 @@ func (api *Client) ListAllWebhooks(repoName string) ([]interface{}, int) {
 
 func (api *Client) GetWebhook(repoName string, hookId int) map[string]interface{} {
 	apiResponse, _ := api.Github("GET", nil, "/repos/"+repoName+"/hooks/"+strconv.Itoa(hookId), nil)
-	if debug {
+	if api.debug {
 		fmt.Println(utils.ReturnPrettyPrintJson(apiResponse))
 	}
 	return utils.GetJson(apiResponse).(map[string]interface{})
@@ -56,7 +56,7 @@ func (api *Client) CreateWebhook(repoName string, url string, events string) map
 		"config": map[string]string{"url": url, "content_type": "json"}})
 	apiResponse, _ := api.Github("POST", nil, "/repos/"+repoName+"/hooks", strings.NewReader(string(jsonOut)))
 	hookMap := utils.GetJson(apiResponse).(map[string]interface{})
-	if debug {
+	if api.debug {
 		printHookHeader()
 		printHookDetails(hookMap)
 	}
@@ -66,7 +66,7 @@ func (api *Client) CreateWebhook(repoName string, url string, events string) map
 func (api *Client) DeleteWebhook(repoName string, hookId int) int {
 	apiResponse, httpCode := api.Github("DELETE", nil, "/repos/"+repoName+"/hooks/"+strconv.Itoa(hookId), nil)
 	// 204 Means No-Content Returned
-	if httpCode == 204 && utils.GetJson(apiResponse) == nil && debug {
+	if httpCode == 204 && utils.GetJson(apiResponse) == nil && api.debug {
 		fmt.Println("Hook with ID " + strconv.Itoa(hookId) + ", got deleted.")
 	}
 	return httpCode

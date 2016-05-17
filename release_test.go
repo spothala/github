@@ -15,7 +15,7 @@ const (
 	TOKEN   = "" // PERSONAL_ACCESS_TOKEN
 )
 
-var githubAPI = New(TOKEN, true)
+var githubAPI = New(TOKEN, false)
 
 func TestCreateRelease(t *testing.T) {
 	relUrl := githubAPI.CreateRelease(ORGREPO, TAGNAME, TITLE, BODY)
